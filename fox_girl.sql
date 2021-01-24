@@ -20,6 +20,8 @@ CREATE TABLE `tag` (
 CREATE TABLE `file_url` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `id_object` int UNIQUE NOT NULL,
+  `file_width` int NOT NULL,
+  `file_height` int NOT NULL,
   `file_ext` mediumtext NOT NULL
 );
 

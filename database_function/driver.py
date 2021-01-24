@@ -15,10 +15,11 @@ import pathlib
 Base = declarative_base()
 
 
-class FoxGirlDatabase:
+class ImageDatabase:
 
     def __init__(self):
-        session_factory = sessionmaker(bind=create_engine('mysql://taruu:d@localhost', pool_recycle=3600), echo=False)
+        with open("db.txt") as db_file:
+            session_factory = sessionmaker(bind=create_engine(db_file.read(), pool_recycle=3600), echo=False)
         self.executor = scoped_session(session_factory)
 
     class Object(Base):
@@ -32,6 +33,8 @@ class FoxGirlDatabase:
         __tablename__ = "file_url"
         id = Column(Integer, primary_key=True, autoincrement=True)
         id_object = Column(Integer, ForeignKey("object.id"))
+        file_width = Column(Integer)
+        file_height = Column(Integer)
         file_ext = Column(TEXT)
 
     class Tag(Base):

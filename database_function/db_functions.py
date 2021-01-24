@@ -1,15 +1,15 @@
 import sqlalchemy
 from sqlalchemy import create_engine
-from database_function.driver import FoxGirlDatabase
+from database_function.driver import ImageDatabase
 import pickle
 import time
 
-class database_worker:
+class DatabaseWorker:
     def __init__(self):
-        self.sessionWorker = FoxGirlDatabase()
+        self.sessionWorker = ImageDatabase()
 
+    def add_object(self,md5_hash:str, rating:str, tags:list, urls_image:list, file_format=None):
+        object_image = self.sessionWorker.Object(md5_hash=md5_hash, rating=rating)
+        object_image.tags
 
-    """Ну все что user"""
-    def add_fox(self):
-        self.sessionWorker
 
