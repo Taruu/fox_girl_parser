@@ -6,4 +6,3 @@ print()
 for item in posts:
     print(json.dumps(item))
 
-    print('200')
