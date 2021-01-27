@@ -15,10 +15,12 @@ class DatabaseWorker:
         tags - Tags pictures
         urls_image -Image storage links
         How insert urls?
-        Exsemple:
-        {"size": 1,"width":22,"height":33,"file_format":"jpg","url":"https://pbs.twimg.com/media/EGbhF6TVAAEEHdy.jpg"}
+        Example:
+        [{"size": 1,"width":22,"height":33,"file_format":"jpg","url":"https://pbs.twimg.com/media/EGbhF6TVAAEEHdy.jpg"},
+        {"size": 1,"width":22,"height":33,"file_format":"jpg","url":"https://pbs.twimg.com/media/EGbhF6TVAAEEHdy.jpg"}]
         size - bytes
         width and height - px
+        
         """
         print(md5_hash)
         #object_image = self.sessionWorker.Object(md5_hash=md5_hash, rating=rating)
