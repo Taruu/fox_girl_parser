@@ -1,6 +1,6 @@
 import sqlalchemy
 from sqlalchemy import create_engine
-from database_function.driver import ImageDatabase
+from database.driver import ImageDatabase
 import pickle
 import time
 
@@ -8,7 +8,7 @@ class DatabaseWorker:
     def __init__(self):
         self.sessionWorker = ImageDatabase()
 
-    def add_object(self,md5_hash:str,rating:str, tags:list, urls_image:list):
+    def add_object(self, md5_hash : str, rating : str, tags : list, urls_image : list):
         """
         md5_hash - The largest image hash available
         rating - image rating s,q и еще че то
@@ -22,8 +22,12 @@ class DatabaseWorker:
         width and height - px
         
         """
-        print(md5_hash)
-        #object_image = self.sessionWorker.Object(md5_hash=md5_hash, rating=rating)
-        #object_image.tags
+        object_image = self.sessionWorker.Object(md5_hash=md5_hash, rating=rating)
+
+        self.sessionWorker.executor.add(object_image)
+        self.sessionWorker.executor.commit()
 
 
+if __name__ == "__main__":
+    database = DatabaseWorker()
+    database.add_object("test","s",["test","test"],[{}])

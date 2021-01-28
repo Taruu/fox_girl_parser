@@ -16,10 +16,9 @@ Base = declarative_base()
 
 
 class ImageDatabase:
-
     def __init__(self):
         with open("db.txt") as db_file:
-            session_factory = sessionmaker(bind=create_engine(db_file.read(), pool_recycle=3600), echo=False)
+            session_factory = sessionmaker(bind=create_engine(db_file.read(), pool_recycle=3600,echo=False))
         self.executor = scoped_session(session_factory)
 
     class Object(Base):
@@ -27,7 +26,8 @@ class ImageDatabase:
         id = Column(Integer, primary_key=True, autoincrement=True)
         rating = Column(TEXT)
         md5_hash = Column(CHAR(32), unique=True)
-        links = relationship("file_url")
+        links = relationship("FileUrl")
+        tags = relationship("Tag",secondary="obj_to_tag")
 
     class FileUrl(Base):
         __tablename__ = "file_url"
@@ -41,6 +41,8 @@ class ImageDatabase:
         __tablename__ = "tag"
         id = Column(Integer, primary_key=True, autoincrement=True)
         name = Column(TEXT,unique=True)
+        objects = relationship("Object",secondary="obj_to_tag")
+
 
     class ObjToTag(Base):
         __tablename__ = "obj_to_tag"
