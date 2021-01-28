@@ -22,12 +22,16 @@ CREATE TABLE `file_url` (
   `id_object` int UNIQUE NOT NULL,
   `file_width` int NOT NULL,
   `file_height` int NOT NULL,
+  `url` longTEXT NOT NULL,
+  `hash_url` varchar(255) UNIQUE NOT NULL,
   `file_ext` mediumtext NOT NULL
 );
 
 ALTER TABLE object ADD UNIQUE (md5_hash);
 
 ALTER TABLE tag ADD UNIQUE (name);
+
+ALTER TABLE file_url ADD UNIQUE (hash_url);
 
 ALTER TABLE `obj_to_tag` ADD FOREIGN KEY (`tag`) REFERENCES `tag` (`id`);
 
