@@ -14,7 +14,7 @@ CREATE TABLE `obj_to_tag` (
 
 CREATE TABLE `tag` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
-  `name` mediumtext NOT NULL
+  `name` VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE `file_url` (
@@ -22,11 +22,16 @@ CREATE TABLE `file_url` (
   `id_object` int UNIQUE NOT NULL,
   `file_width` int NOT NULL,
   `file_height` int NOT NULL,
-  `file_ext` mediumtext NOT NULL
+  `url` longTEXT NOT NULL,
+  `hash_url` varchar(255) UNIQUE NOT NULL,
+  `file_ext` char(8) NOT NULL
 );
 
 ALTER TABLE object ADD UNIQUE (md5_hash);
 
+ALTER TABLE tag ADD UNIQUE (name);
+
+ALTER TABLE file_url ADD UNIQUE (hash_url);
 
 ALTER TABLE `obj_to_tag` ADD FOREIGN KEY (`tag`) REFERENCES `tag` (`id`);
 
