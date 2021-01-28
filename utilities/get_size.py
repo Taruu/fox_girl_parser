@@ -1,5 +1,6 @@
 import requests
 from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class GetSize():
     def __init__(self, url: str = None):
@@ -25,12 +26,13 @@ class GetSize():
                     data = requesting_file.raw.read(1024)
                     if not data:
                         requesting_file.close()
-                        return size, None
+                        return size, None, None
 
                     image_parser.feed(data)
                     if image_parser.image:
                         requesting_file.close()
-                        return size, image_parser.image.size
+                        img = image_parser.close()
+                        return size, image_parser.image.size, img.format
 
         raise ValueError("The url is not leads to an image")
 
