@@ -24,7 +24,7 @@ CREATE TABLE `file_url` (
   `file_height` int NOT NULL,
   `url` longTEXT NOT NULL,
   `hash_url` varchar(255) UNIQUE NOT NULL,
-  `file_ext` mediumtext NOT NULL
+  `file_ext` char(8) NOT NULL
 );
 
 ALTER TABLE object ADD UNIQUE (md5_hash);
