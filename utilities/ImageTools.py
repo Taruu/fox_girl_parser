@@ -1,4 +1,6 @@
 import requests
+import hashlib
+
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -22,5 +24,12 @@ class ImageTools():
                         requesting_file.close()
                         img = image_parser.close()
                         return size, image_parser.image.size, img.format
+    def get_md5(url):
+        if url.startswith("https://") or url.startswith("http://"):
+            requesting_file = requests.get(url, stream=True)
+            if requesting_file.headers.get("Content-Type").startswith("image/"):
+                return hashlib.md5(requesting_file.content).hexdigest()
 
-print(ImageTools.get_size_and_format("https://danbooru.donmai.us/data/a020846a0b3068986b228e0f6c2d8342.png"))
+
+# print(ImageTools.get_md5("https://danbooru.donmai.us/data/a020846a0b3068986b228e0f6c2d8342.png"))
+# print(ImageTools.get_size_and_format("https://danbooru.donmai.us/data/a020846a0b3068986b228e0f6c2d8342.png"))
