@@ -2,19 +2,8 @@ import requests
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-class GetSize():
-    def __init__(self, url: str = None):
-        self.url = url
-
-    def change_url(self, url: str = None):
-        self.url = url
-
-    def get_size(self):
-        url = self.url
-
-        if not isinstance(url, str):
-            raise ValueError("The url is not leads to an image")
-
+class ImageTools():
+    def get_size_and_format(url):
         if url.startswith("https://") or url.startswith("http://"):
             requesting_file = requests.get(url, stream=True)
             if requesting_file.headers.get("Content-Type").startswith("image/"):
@@ -34,7 +23,4 @@ class GetSize():
                         img = image_parser.close()
                         return size, image_parser.image.size, img.format
 
-        raise ValueError("The url is not leads to an image")
-
-gs = GetSize("https://danbooru.donmai.us/data/a020846a0b3068986b228e0f6c2d8342.png")
-print(gs.get_size())
+print(ImageTools.get_size_and_format("https://danbooru.donmai.us/data/a020846a0b3068986b228e0f6c2d8342.png"))
