@@ -27,7 +27,9 @@ class DatabaseWorker:
                                                  rating=rating)
         for link in urls_image:
             file_url = self.sessionWorker.FileUrl(id_object=object_image.id,
-                                                  file_width
+                                                  file_width=link["width"],
+                                                  file_height=link["width"]
+
                                                   )
             object_image.links.append()
 

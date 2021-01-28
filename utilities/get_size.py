@@ -1,6 +1,6 @@
 import requests
 from PIL import ImageFile
-
+import hashlib
 class GetSize():
     def __init__(self, uri: str = None):
         self.uri = uri
@@ -41,3 +41,7 @@ class GetSize():
 #
 #
 # print(getsizes("https://danbooru.donmai.us/data/a020846a0b3068986b228e0f6c2d8342.png"))
+
+
+
+        
