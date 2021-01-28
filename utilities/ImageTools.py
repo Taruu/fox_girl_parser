@@ -7,7 +7,13 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 class ImageTools():
     def get_size_and_format(url):
         if url.startswith("https://") or url.startswith("http://"):
-            requesting_file = requests.get(url, stream=True)
+            try:
+                requesting_file = requests.get(url, stream=True)
+                requesting_file.raise_for_status()
+            except requests.exceptions.RequestException as err:
+                requesting_file.close()
+                raise Exception(err)
+
             if requesting_file.headers.get("Content-Type").startswith("image/"):
                 size = requesting_file.headers.get("Content-Length")
                 size = int(size) or size
@@ -23,13 +29,24 @@ class ImageTools():
                     if image_parser.image:
                         requesting_file.close()
                         img = image_parser.close()
-                        return size, image_parser.image.size, img.format
+                        return size, img.size, img.format
+
     def get_md5(url):
         if url.startswith("https://") or url.startswith("http://"):
-            requesting_file = requests.get(url, stream=True)
-            if requesting_file.headers.get("Content-Type").startswith("image/"):
-                return hashlib.md5(requesting_file.content).hexdigest()
+            try:
+                requesting_file = requests.get(url, stream=True)
+                requesting_file.raise_for_status()
+            except requests.exceptions.RequestException as err:
+                requesting_file.close()
+                raise Exception(err)
 
+            if requesting_file.headers.get("Content-Type").startswith("image/"):
+                img = requesting_file.content
+                requesting_file.close()
+                return hashlib.md5(img).hexdigest()
+
+class NotAnImage(Exception):
+    pass
 
 # print(ImageTools.get_md5("https://danbooru.donmai.us/data/a020846a0b3068986b228e0f6c2d8342.png"))
 # print(ImageTools.get_size_and_format("https://danbooru.donmai.us/data/a020846a0b3068986b228e0f6c2d8342.png"))
