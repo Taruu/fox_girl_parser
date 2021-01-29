@@ -29,7 +29,7 @@ class ImageTools():
                     if image_parser.image:
                         requesting_file.close()
                         img = image_parser.close()
-                        return size, img.size, img.format
+                        return {"size": size, "width":img.size[0], "height":img.size[1], "format": img.format}
 
     def get_md5(url):
         if url.startswith("https://") or url.startswith("http://"):
@@ -43,7 +43,7 @@ class ImageTools():
             if requesting_file.headers.get("Content-Type").startswith("image/"):
                 img = requesting_file.content
                 requesting_file.close()
-                return hashlib.md5(img).hexdigest()
+                return {"hash": hashlib.md5(img).hexdigest()}
 
 class NotAnImage(Exception):
     pass

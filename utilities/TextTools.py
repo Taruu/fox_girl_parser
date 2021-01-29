@@ -1,4 +1,5 @@
 import hashlib
+
 class HashUtils:
     @staticmethod
     def str_to_md5(str_in):
