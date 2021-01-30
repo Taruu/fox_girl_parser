@@ -7,6 +7,7 @@ def Danbooru(tags = "", page = 0, limit = 100):
     posts = client.post_list(tags = tags, page = page, limit = limit)
     res = []
     for item in posts:
+        print(item)
         res.append( {
             "width": item["image_width"],
             "height": item["image_height"],
@@ -18,5 +19,4 @@ def Danbooru(tags = "", page = 0, limit = 100):
         } )
 
     return res
-#test
-print(Danbooru(tags = "fox_ears", page = 1, limit = 1))
+print(Danbooru(tags = "fox_ears date:2012-01-01..2013-01-01", page = 1, limit = 1))
