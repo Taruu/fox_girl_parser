@@ -25,6 +25,7 @@ class DatabaseWorker(ImageDatabase):
     def get_tag_or_create(self, name):
         name = name[:255]  # not stonks
         tag = self.executor.query(self.Tag).filter_by(name=name).first()
+
         if tag is None:
             tag = self.Tag(name=name)
             self.database_to_add.append(tag)
@@ -38,7 +39,8 @@ class DatabaseWorker(ImageDatabase):
             self.database_to_add.append(time_obj)
         return time_obj
 
-    def update_object(self, object_to_edit_or_md5_hash, rating: str, time_created: int, tags: list, urls_image: list):
+    def update_object(self, object_to_edit_or_md5_hash, rating: str, time_created: int, new_tags: list,
+                      urls_image: list):
         if object_to_edit_or_md5_hash is ImageDatabase.Object:
             object_to_edit = object_to_edit_or_md5_hash
         else:
@@ -47,34 +49,53 @@ class DatabaseWorker(ImageDatabase):
         if object_to_edit is None:
             return "If you receive this error, then obviously someone broke the database or deleted the object while the program was thinking: /"
         time_update_obj = self.get_time_file_or_create(int(time.time()))
+        time_created_obj = self.get_time_file_or_create(int(time_created))
         tags_in_object = list(map(lambda obj: obj.name, object_to_edit.tags))
-        obj_md5_url_hash = list(map(lambda link: link.hash_url, object_to_edit.links))
+        url_md5_in_object = list(map(lambda link: link.hash_url, object_to_edit.links))
 
         # cringe functions :/
-        obj_md5_url_hash_new = [{"size": url["size"],
-                                 "width": url["width"],
-                                 "height": url["height"],
-                                 "file_ext": url["file_ext"],
-                                 "url": url["url"],
-                                 "hash_url": self.HashUtils.str_to_md5(url["url"])}
-                                for url in urls_image]
-        print(obj_md5_url_hash_new)
-        for tag_to_remove in tags_in_object:
-            tags.remove(tag_to_remove)
+        url_to_object = [{"size": url["size"],
+                          "width": url["width"],
+                          "height": url["height"],
+                          "file_ext": url["file_ext"],
+                          "url": url["url"]}
+                         for url in urls_image if not(self.HashUtils.str_to_md5(url["url"]) in url_md5_in_object)]
 
-        for url_with_hash in obj_md5_url_hash_new:
-            if url_with_hash["hash_url"] in obj_md5_url_hash:
-                obj_md5_url_hash_new.remove(url_with_hash)
+        tags_to_object = [tag for tag in new_tags if not (tag in tags_in_object)]
 
+        for tag in tags_to_object:  # not has crossing!
+            tag_object = self.get_tag_or_create(tag)
+            object_to_edit.tags.append(tag_object)
 
+        for url in url_to_object:
+            file_url = self.FileUrl(
+                file_width=url["width"],
+                file_height=url["height"],
+                file_ext=url["file_ext"],
+                url=url["url"],
+                hash_url=self.HashUtils.str_to_md5(url["url"]),
+                id_check_at=time_update_obj.id,
+                id_create_at=time_created_obj.id
+            )
+            object_to_edit.links.append(file_url)
+            self.database_to_add.append(file_url)
 
-        print(object_to_edit.check_at_obj)
+        self.executor.add_all(self.database_to_add)
+        try:
+            self.executor.flush()
+        except sqlalchemy.exc.IntegrityError as e:
+            print(str(e).split(" "))
+            if "(1062," in str(e).split(" "):
+                return "There are intersections!"
+            self.executor.rollback()
+        self.executor.commit()
+        self.database_to_add.clear()
 
     def add_object(self, md5_hash: str, rating: str, time_created: int, tags: list, urls_image: list):
         """
         md5_hash - The LARGEST image hash available
         rating - image rating s,q и еще че то
-        tags - Tags pictures
+        new_tags - Tags pictures
         urls_image -Image storage links
         How insert urls?
         Example:
@@ -130,8 +151,8 @@ class DatabaseWorker(ImageDatabase):
 
 if __name__ == "__main__":
     database = DatabaseWorker()
-    print(database.update_object("test", "s", 1264964759, ["test", "test2"],
+    print(database.update_object("test", "s", 1264964759, ["test3", "test2"],
                                  [{"size": 1, "width": 11, "height": 22, "file_ext": "jpg",
-                                   "url": "https://pbs.twimg.com/media/EGbhF6TVAAEEHdy.jpg"},
+                                   "url": "https://pbs.twimg.com/media/EGbhF6TVAAEEsdfsdfHdy.jpg"},
                                   {"size": 1, "width": 33, "height": 44, "file_ext": "jpg",
                                    "url": "https://pbs.twimg.com/media/EGbhF6TfVAAEEHdy.jpg"}]))
