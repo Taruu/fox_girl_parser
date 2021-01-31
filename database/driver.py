@@ -16,6 +16,7 @@ class ImageDatabase:
         self.executor = scoped_session(session_factory)
 
     class Object(Base):
+        #TODO add data create and data add in database and update
         __tablename__ = "object"
         id = Column(Integer, primary_key=True, autoincrement=True)
         rating = Column(TEXT)
