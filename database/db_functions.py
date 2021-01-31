@@ -4,6 +4,8 @@ from database.driver import ImageDatabase
 import pickle
 import time
 from utilities import TextTools
+from datetime import datetime
+import time
 
 
 class DatabaseWorker(ImageDatabase):
@@ -13,22 +15,62 @@ class DatabaseWorker(ImageDatabase):
         self.database_to_add = []
 
     def get_object_by_md5_hash(self, md5_hash):
-        Item = self.executor.query(self.Object).filter_by(md5_hash=md5_hash).first()
-        return Item
+        item_obj = self.executor.query(self.Object).filter_by(md5_hash=md5_hash).first()
+        return item_obj
 
     def get_file_url_by_url(self, url):
-        File_url = self.executor.query(self.FileUrl).filter_by(hash_url=self.HashUtils.str_to_md5(url))
-        return File_url
+        file_url = self.executor.query(self.FileUrl).filter_by(hash_url=self.HashUtils.str_to_md5(url))
+        return file_url
 
-    def get_tag_or_create(self,name):
-        name = name[:255] #not stonks
+    def get_tag_or_create(self, name):
+        name = name[:255]  # not stonks
         tag = self.executor.query(self.Tag).filter_by(name=name).first()
         if tag is None:
-            tag = self.Tag(name = name)
+            tag = self.Tag(name=name)
             self.database_to_add.append(tag)
         return tag
 
-    def add_object(self, md5_hash: str, rating: str, tags: list, urls_image: list):
+    def get_time_file_or_create(self, time_in: int):
+        time_datetime = datetime.utcfromtimestamp(time_in)
+        time_obj = self.executor.query(self.TimeFile).filter_by(time_file_data=time_datetime).first()
+        if time_obj is None:
+            time_obj = self.TimeFile(time_file_data=time_datetime)
+            self.database_to_add.append(time_obj)
+        return time_obj
+
+    def update_object(self, object_to_edit_or_md5_hash, rating: str, time_created: int, tags: list, urls_image: list):
+        if object_to_edit_or_md5_hash is ImageDatabase.Object:
+            object_to_edit = object_to_edit_or_md5_hash
+        else:
+            object_to_edit = self.get_object_by_md5_hash(object_to_edit_or_md5_hash)
+
+        if object_to_edit is None:
+            return "If you receive this error, then obviously someone broke the database or deleted the object while the program was thinking: /"
+        time_update_obj = self.get_time_file_or_create(int(time.time()))
+        tags_in_object = list(map(lambda obj: obj.name, object_to_edit.tags))
+        obj_md5_url_hash = list(map(lambda link: link.hash_url, object_to_edit.links))
+
+        # cringe functions :/
+        obj_md5_url_hash_new = [{"size": url["size"],
+                                 "width": url["width"],
+                                 "height": url["height"],
+                                 "file_ext": url["file_ext"],
+                                 "url": url["url"],
+                                 "hash_url": self.HashUtils.str_to_md5(url["url"])}
+                                for url in urls_image]
+        print(obj_md5_url_hash_new)
+        for tag_to_remove in tags_in_object:
+            tags.remove(tag_to_remove)
+
+        for url_with_hash in obj_md5_url_hash_new:
+            if url_with_hash["hash_url"] in obj_md5_url_hash:
+                obj_md5_url_hash_new.remove(url_with_hash)
+
+
+
+        print(object_to_edit.check_at_obj)
+
+    def add_object(self, md5_hash: str, rating: str, time_created: int, tags: list, urls_image: list):
         """
         md5_hash - The LARGEST image hash available
         rating - image rating s,q и еще че то
@@ -42,34 +84,35 @@ class DatabaseWorker(ImageDatabase):
         width and height - px
         
         """
-        object_image = None
 
+        # We are looking for an object so as not to make extra tambourines
 
         object_image = self.get_object_by_md5_hash(md5_hash)
 
         if not object_image:
             object_image = self.Object(md5_hash=md5_hash, rating=rating)
-            self.database_to_add.append(object_image) #add to add bac
+            self.database_to_add.append(object_image)  # add to add bac
+        else:
+            return "Object exists", object_image
 
+        # object_not exists! Good mate!
 
-        for tag in tags:
+        time_update_obj = self.get_time_file_or_create(int(time.time()))
+        time_created_obj = self.get_time_file_or_create(int(time_created))
+
+        for tag in tags:  # not has crossing!
             tag_object = self.get_tag_or_create(tag)
             object_image.tags.append(tag_object)
 
-
-        self.executor.add_all(self.database_to_add)
-        self.executor.flush() #Errors cannot exist!
-        self.executor.commit()
-        self.database_to_add.clear()
-
-        # we not need to test hash url. This work make MYSQL server
         for url in urls_image:
             file_url = self.FileUrl(
                 file_width=url["width"],
                 file_height=url["height"],
                 file_ext=url["file_ext"],
                 url=url["url"],
-                hash_url=self.HashUtils.str_to_md5(url["url"])
+                hash_url=self.HashUtils.str_to_md5(url["url"]),
+                id_check_at=time_update_obj.id,
+                id_create_at=time_created_obj.id
             )
             object_image.links.append(file_url)
             self.database_to_add.append(file_url)
@@ -79,15 +122,16 @@ class DatabaseWorker(ImageDatabase):
             self.executor.flush()
         except sqlalchemy.exc.IntegrityError as e:
             if "(1062" in str(e).split(" "):
-
                 return "There are intersections!"
             self.executor.rollback()
         self.executor.commit()
+        self.database_to_add.clear()
 
 
 if __name__ == "__main__":
     database = DatabaseWorker()
-    database.add_object("test", "s", ["test", "test2"], [{"size": 1, "width": 11, "height": 22, "file_ext": "jpg",
-                                                          "url": "https://pbs.twimg.com/media/EGbhF6TVAAEEHdy.jpg"},
-                                                         {"size": 1, "width": 33, "height": 44, "file_ext": "jpg",
-                                                          "url": "https://pbs.twimg.com/media/EGbhF6TfVAAEEHdy.jpg"}])
+    print(database.update_object("test", "s", 1264964759, ["test", "test2"],
+                                 [{"size": 1, "width": 11, "height": 22, "file_ext": "jpg",
+                                   "url": "https://pbs.twimg.com/media/EGbhF6TVAAEEHdy.jpg"},
+                                  {"size": 1, "width": 33, "height": 44, "file_ext": "jpg",
+                                   "url": "https://pbs.twimg.com/media/EGbhF6TfVAAEEHdy.jpg"}]))
