@@ -66,7 +66,7 @@ class DanboorParser():
                 tag_date = "date:{}..{}".format(last_time.strftime('%Y-%m-%d'),
                                                 (last_time + datetime.timedelta(days=timedelta_days))
                                                 .strftime('%Y-%m-%d'))
-                list_dates.append({"date_tag": tag_date, "pages": self.client.count_posts(tags=tag + " " + tag_date)})
+                list_dates.append({"date_tag": tag_date, "pages": self.client.count_posts(tags=tag + " " + tag_date)["counts"]["posts"]})
                 last_time = last_time + datetime.timedelta(days=timedelta_days)
             return False, list_dates
 
