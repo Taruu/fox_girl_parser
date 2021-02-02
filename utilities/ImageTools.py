@@ -9,6 +9,7 @@ from utilities.TextTools import UrlStr
 
 class ImageTools():
     class Url():
+        @staticmethod
         def get_size_and_format(url):
             try:
                 checked = UrlStr.is_url(url)
@@ -40,6 +41,7 @@ class ImageTools():
                             img = image_parser.close()
                             return {"size": size, "width": img.size[0], "height": img.size[1], "format": img.format}
 
+        @staticmethod
         def get_md5(url):
             try:
                 checked = UrlStr.is_url(url)
@@ -60,6 +62,7 @@ class ImageTools():
                     return {"hash": hashlib.md5(img).hexdigest()}
 
     class File():
+        @staticmethod
         def get_size_and_format(filename):
             try:
                 with open(filename, "rb") as image_file:
@@ -72,6 +75,7 @@ class ImageTools():
             except OSError as err:
                 raise OSError(err)
 
+        @staticmethod
         def get_md5(filename):
             try:
                 with open(filename, "rb") as image_file:

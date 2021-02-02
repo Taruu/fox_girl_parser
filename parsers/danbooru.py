@@ -5,6 +5,8 @@ from pybooru import Danbooru as booru
 from utilities.ImageTools import ImageTools
 
 class Danbooru():
+
+    @staticmethod
     def get_posts(tags = "", page = 0, limit = 1000, date_start = None, date_end = None, filter_bad_images = True):
         limit = limit if limit < 1000 else 1000
 
