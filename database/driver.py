@@ -15,7 +15,13 @@ class ImageDatabase:
             session_factory = sessionmaker(bind=create_engine(db_file.read(), pool_recycle=3600, echo=False))
         self.executor = scoped_session(session_factory)
 
+    class TimeFile(Base):
+        __tablename__ = "time_file"
+        id = Column(Integer, primary_key=True)
+        time_file_data = Column(TIMESTAMP, unique=True)
+
     class Object(Base):
+        #TODO add data create and data add in database and update
         __tablename__ = "object"
         id = Column(Integer, primary_key=True, autoincrement=True)
         rating = Column(TEXT)
@@ -32,6 +38,11 @@ class ImageDatabase:
         file_ext = Column(CHAR(8))
         url = Column(TEXT)
         hash_url = Column(CHAR(32), unique=True)
+        id_check_at = Column(Integer, ForeignKey("time_file.id"))
+        id_create_at = Column(Integer, ForeignKey("time_file.id"))
+        check_at_obj = relationship("TimeFile", foreign_keys=[id_check_at])
+        create_at_obj = relationship("TimeFile", foreign_keys=[id_create_at])
+
 
     class Tag(Base):
         __tablename__ = "tag"
@@ -43,3 +54,5 @@ class ImageDatabase:
         __tablename__ = "obj_to_tag"
         object = Column(Integer, ForeignKey("object.id"), primary_key=True)
         tag = Column(Integer, ForeignKey("tag.id"), primary_key=True)
+
+
