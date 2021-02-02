@@ -5,8 +5,9 @@ from pybooru import Danbooru as booru
 from utilities.ImageTools import ImageTools
 
 class Danbooru():
+
     @staticmethod
-    def get_posts(tags = "", page = 0, limit = 1000, date_start = None, date_end = None, date_year = None, date_one_year = True, filter_bad_images = True):
+    def get_posts(tags = "", page = 0, limit = 1000, date_start = None, date_end = None, filter_bad_images = True):
         limit = limit if limit < 1000 else 1000
 
         if isinstance(date_start, datetime.datetime) and isinstance(date_end, datetime.datetime):
@@ -39,4 +40,4 @@ class Danbooru():
                 })
         return res
 
-print(Danbooru.get_posts(tags = "fox_ears", page = 1, date_year = 2012, filter_bad_images = True))
+# print(Danbooru.get_posts(tags = "fox_ears", page = 1, date_start = datetime.datetime(2012, 1, 1), date_end = datetime.datetime(2013, 1, 1), filter_bad_images = True))
