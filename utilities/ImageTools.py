@@ -5,10 +5,17 @@ import hashlib
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+from utilities.TextTools import UrlStr
+
 class ImageTools():
     class Url():
         def get_size_and_format(url):
-            if url.startswith("https://") or url.startswith("http://"):
+            try:
+                checked = UrlStr.is_url(url)
+            except ValueError as err:
+                return {"size": None, "width": None, "height": None, "format": None}
+
+            if checked:
                 try:
                     requesting_file = requests.get(url, stream=True)
                     requesting_file.raise_for_status()
@@ -34,7 +41,12 @@ class ImageTools():
                             return {"size": size, "width": img.size[0], "height": img.size[1], "format": img.format}
 
         def get_md5(url):
-            if url.startswith("https://") or url.startswith("http://"):
+            try:
+                checked = UrlStr.is_url(url)
+            except ValueError as err:
+                return {"hash": None}
+
+            if checked:
                 try:
                     requesting_file = requests.get(url, stream=True)
                     requesting_file.raise_for_status()

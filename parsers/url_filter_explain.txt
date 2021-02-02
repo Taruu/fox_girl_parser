@@ -1,0 +1,8 @@
+┌───────┬────────┬──────────┐ ┌─────────────┬────────────┬─────────────────┬───────────────┐
+│  url  │ filter │  expect  │ │   p and q   │   p or q   │   not(p) or q   │   p or not(q) │
+├───────┼────────┼──────────┤ ├─────────────┼────────────┼─────────────────┼───────────────┤
+│ True  │ True   │  True    │ │ ✓ True      │ ✓ True     │ ✓ True          │ ✓ True        │
+│ True  │ False  │  True    │ │ ✗ False     │ ✓ True     │ ✗ False         │ ✓ True        │
+│ False │ True   │  False   │ │ ✓ False     │ ✗ True     │ ✓ True          │ ✓ False       │
+│ False │ False  │  True    │ │ ✓ False     │ ✓ False    │ ✓ True          │ ✓ True        │
+└───────┴────────┴──────────┘ └─────────────┴────────────┴─────────────────┴───────────────┘
