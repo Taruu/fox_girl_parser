@@ -100,8 +100,8 @@ class NoImageFile(FileNotFoundError):
 # "https://danbooru.donmai.us/data/a020846a0b3068986b228e0f6c2d8342.png",
 # and have the same stats as url
 
-api = ImageTools.Pixvit()
-api.get_image_by_id(32130456)
+#api = ImageTools.Pixvit()
+#api.get_image_by_id(32130456)
 # print(ImageTools.Url.get_md5("https://danbooru.donmai.us/data/a020846a0b3068986b228e0f6c2d8342.png"))
 # print(ImageTools.File.get_md5("a020846a0b3068986b228e0f6c2d8342.png"))
 # print(ImageTools.Url.get_size_and_format("https://danbooru.donmai.us/data/a020846a0b3068986b228e0f6c2d8342.png"))
