@@ -74,6 +74,7 @@ class DanboorParser():
                 start_time = start_time + datetime.timedelta(days=timedelta_days)
                 list_dates.append({"date_tag": tag_date,
                                         "pages": math.ceil(counts/200)})
+            #TODO add read from cfg
             return False, list_dates
 
 
@@ -103,4 +104,4 @@ class DanboorParser():
 # print(DanboorParser.get_posts(tag = "fox_ears", page = 1, date_year = 2012, date_days_period = 356))
 
 dp = DanboorParser()
-print(json.dumps(dp.queue_page_generator("1girl")))
+print(json.dumps(dp.get_posts("fox_girl",page=10)))

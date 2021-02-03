@@ -151,7 +151,7 @@ class DatabaseWorker(ImageDatabase):
 
 if __name__ == "__main__":
     database = DatabaseWorker()
-    print(database.update_object("test", "s", 1264964759, ["test3", "test2"],
+    print(database.add_object("test", "s", 1264964759, ["test3", "test2"],
                                  [{"size": 1, "width": 11, "height": 22, "file_ext": "jpg",
                                    "url": "https://pbs.twimg.com/media/EGbhF6TVAAEEsdfsdfHdy.jpg"},
                                   {"size": 1, "width": 33, "height": 44, "file_ext": "jpg",

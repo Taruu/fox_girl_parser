@@ -2,7 +2,7 @@ from pixivpy3 import *
 class Pixvit():
     def __init__(self):
         self.api = AppPixivAPI()
-        with open("../сonfig_files/db.txt") as file:
+        with open("../сonfig_files/pixiv.txt") as file:
             self.api.login(*file.read().split(" "))
 
     def get_image_by_id(self, id: int) -> dict:
