@@ -2,10 +2,10 @@
 CREATE TABLE `object` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `rating` tinytext NOT NULL,
-  `md5_hash` char(32) NOT NULL
+  `md5_hash` char(32) NOT NULL,
   `file_width` int NOT NULL,
   `file_height` int NOT NULL,
-  `file_ext` char(8) NOT NULL
+  `file_size` int NOT NULL
 );
 
 

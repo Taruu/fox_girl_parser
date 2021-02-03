@@ -39,8 +39,13 @@ class DatabaseWorker(ImageDatabase):
             self.database_to_add.append(time_obj)
         return time_obj
 
-    def update_object(self, object_to_edit_or_md5_hash, rating: str, time_created: int, new_tags: list,
-                      urls_image: list):
+    def update_object(self,
+                      object_to_edit_or_md5_hash,
+                      rating: str,
+                      time_created: int,
+                      new_tags: list,
+                      urls_image: list
+                      ):
         if object_to_edit_or_md5_hash is ImageDatabase.Object:
             object_to_edit = object_to_edit_or_md5_hash
         else:
@@ -69,9 +74,6 @@ class DatabaseWorker(ImageDatabase):
 
         for url in url_to_object:
             file_url = self.FileUrl(
-                file_width=url["width"],
-                file_height=url["height"],
-                file_ext=url["file_ext"],
                 url=url["url"],
                 hash_url=self.HashUtils.str_to_md5(url["url"]),
                 id_check_at=time_update_obj.id,
@@ -91,7 +93,16 @@ class DatabaseWorker(ImageDatabase):
         self.executor.commit()
         self.database_to_add.clear()
 
-    def add_object(self, md5_hash: str, rating: str, time_created: int, tags: list, urls_image: list):
+    def add_object(self,
+                   md5_hash: str,
+                   rating: str,
+                   time_created: int,
+                   tags: list,
+                   file_size:int,
+                   file_width:int,
+                   file_height:int,
+                   urls_image: list
+                   ):
         """
         md5_hash - The LARGEST image hash available
         rating - image rating s,q и еще че то
@@ -111,7 +122,11 @@ class DatabaseWorker(ImageDatabase):
         object_image = self.get_object_by_md5_hash(md5_hash)
 
         if not object_image:
-            object_image = self.Object(md5_hash=md5_hash, rating=rating)
+            object_image = self.Object(md5_has=md5_hash,
+                                       rating=rating,
+                                       file_size=file_size,
+                                       file_width=file_width,
+                                       file_height=file_height)
             self.database_to_add.append(object_image)  # add to add bac
         else:
             return "Object exists", object_image
@@ -127,9 +142,6 @@ class DatabaseWorker(ImageDatabase):
 
         for url in urls_image:
             file_url = self.FileUrl(
-                file_width=url["width"],
-                file_height=url["height"],
-                file_ext=url["file_ext"],
                 url=url["url"],
                 hash_url=self.HashUtils.str_to_md5(url["url"]),
                 id_check_at=time_update_obj.id,

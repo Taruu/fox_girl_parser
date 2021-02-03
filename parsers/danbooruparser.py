@@ -40,6 +40,7 @@ class DanboorParser():
                     "width": item.get("image_width"),
                     "height": item.get("image_height"),
                     "file_ext": item.get("file_ext"),
+                    "file_size": item.get("file_size"),
                     "md5": item.get("md5") or ImageTools.Url.get_md5(item.get("file_url")),
                     "urls": {"file": item.get("file_url"), "source": item.get("source")},
                     "rating": item.get("rating"),

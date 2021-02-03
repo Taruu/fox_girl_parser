@@ -35,7 +35,7 @@ class ImageDatabase:
         md5_hash = Column(CHAR(32), unique=True)
         file_width = Column(Integer)
         file_height = Column(Integer)
-        file_ext = Column(CHAR(8))
+        file_size = Column(Integer)
         links = relationship("FileUrl")
         tags = relationship("Tag", secondary="obj_to_tag")
 
