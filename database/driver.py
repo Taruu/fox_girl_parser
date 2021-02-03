@@ -15,7 +15,7 @@ Base = declarative_base()
 class ImageDatabase:
     """Image ORM for sqlalchemy"""
     def __init__(self):
-        with open("../сonfig_files/db.txt") as db_file:
+        with open("сonfig_files/db.txt") as db_file:
             session_factory = sessionmaker(
                 bind=create_engine(db_file.read(),
                 pool_recycle=3600,

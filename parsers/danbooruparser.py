@@ -42,9 +42,9 @@ class DanboorParser():
                     "file_ext": item.get("file_ext"),
                     "file_size": item.get("file_size"),
                     "md5": item.get("md5") or ImageTools.Url.get_md5(item.get("file_url")),
-                    "urls": {"file": item.get("file_url"), "source": item.get("source")},
+                    "urls": [item.get("file_url"),item.get("source")],
                     "rating": item.get("rating"),
-                    "tag": item.get("tag_string").split(" "),
+                    "tags": item.get("tag_string").split(" "),
                     "json": item
                 })
         return res
@@ -52,7 +52,7 @@ class DanboorParser():
     def queue_page_generator(self, tag, start_time=datetime.datetime(2005, 5, 23, hour=23, minute=35, second=30)):
         counts = self.client.count_posts(tags=tag)["counts"]["posts"]
         if counts // 200 <= 1000:
-            return True, None
+            return True, {"pages": math.ceil(counts/200)}
         else:
             list_dates = []
             while start_time < datetime.datetime.now():
