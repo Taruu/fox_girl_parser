@@ -1,6 +1,6 @@
 from parsers.danbooruparser import DanboorParser
 from database.db_functions import DatabaseWorker
-import os, json
+import os, json, time
 dp = DanboorParser()
 datebase = DatabaseWorker()
 
@@ -20,5 +20,8 @@ if tag_q[0]:
         posts = dp.get_posts(tags=tag, page=page)
         for i, object in enumerate(posts):
             print(i,object["md5"])
-            print("add_objects")
-            datebase.add_object(object["md5"],object["rating"],1604243880,object["file_size"],object["width"],object["height"],object['tags'],object["urls"])
+            result = datebase.add_object(object["md5"],object["rating"],1604243880,object["file_size"],object["width"],object["height"],object['tags'],object["urls"])
+            if result[0] == "Obj_exists":
+                datebase.update_object(result[1],object["rating"],1604243880,object["tags"],object["urls"])
+        datebase.commit()
+        time.sleep(1)
