@@ -30,7 +30,7 @@ class DanbooruParser():
         res = []
         for item in posts:
             # If you dont understand wtf is this check then open "url_filter_explain.txt"
-            if (item.get("id") is not None) or not filter_bad_images:
+            if (item.get("id") is not None or item.get("file_url") is not None) or not filter_bad_images:
                 res.append({
                     "width": item.get("image_width"),
                     "height": item.get("image_height"),
@@ -38,7 +38,8 @@ class DanbooruParser():
                     "md5": item.get("md5") or ImageTools.Url.get_md5(item.get("file_url")),
                     "urls": [item.get("file_url"), item.get("source")],
                     "rating": item.get("rating"),
-                    "tags": item.get("tag_string").split(" ")
+                    "tags": item.get("tag_string").split(" "),
+                    "created_at": item.get("created_at")
                 })
         return res
 
@@ -69,3 +70,6 @@ class DanbooruParser():
                 list_dates.append({"date_tag": tag_date, "pages": math.ceil(counts/200)})
 
             return False, list_dates
+
+# dp = DanbooruParser()
+# with open("danbooru", "wt") as f: f.write(json.dumps(dp.get_posts(), indent = 4))
