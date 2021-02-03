@@ -2,16 +2,16 @@ import json
 import datetime
 import time
 import math
+
 from pybooru import Danbooru as booru
+
 from utilities.ImageTools import ImageTools
 
-
-class DanboorParser():
+class DanbooruParser():
     def __init__(self):
         self.client = booru('danbooru')
 
-    def get_posts(self, tags="", page=0, limit=200, date_start=None, date_end=None, date_year=None,
-                  date_days_period=356, date_one_year=True, filter_bad_images=True):
+    def get_posts(self, tags="", page=0, limit=200, date_start=None, date_end=None, date_year=None, date_days_period=356, date_one_year=True, filter_bad_images=True):
 
         page = page if page < 1000 else 1000
         limit = limit if limit < 200 else 200
@@ -22,14 +22,9 @@ class DanboorParser():
             else:
                 raise ValueError("date_start must be earlier than date_end")
         elif isinstance(date_start, datetime.datetime) and bool(date_one_year):
-            tags += " date:" + date_start.strftime("%Y-%m-%d") + ".." + (
-                    date_start + datetime.timedelta(days=365)).strftime("%Y-%m-%d")
-            # isinstance(date_year, int) and date_year > 1970 and date_year <= datetime.date.today().year and isinstance(date_days_period, int) and date_days_period > 0:
-        elif isinstance(date_year, int) and 1970 < date_year <= datetime.date.today().year and isinstance(
-                date_days_period, int) and date_days_period > 0:
-            tags += " date:" + datetime.datetime(date_year, 1, 1).strftime("%Y-%m-%d") + ".." + (
-                    datetime.datetime(date_year, 1, 1) + datetime.timedelta(days=date_days_period)).strftime(
-                "%Y-%m-%d")
+            tags += " date:" + date_start.strftime("%Y-%m-%d") + ".." + (date_start + datetime.timedelta(days=365)).strftime("%Y-%m-%d")
+        elif isinstance(date_year, int) and date_year > 1970 and date_year <= datetime.date.today().year and isinstance(date_days_period, int) and date_days_period > 0:
+            tags += " date:" + datetime.datetime(date_year, 1, 1).strftime("%Y-%m-%d") + ".." + (datetime.datetime(date_year, 1, 1) + datetime.timedelta(days=date_days_period)).strftime("%Y-%m-%d")
 
         posts = self.client.post_list(tags=tags, page=page, limit=limit)
         res = []
@@ -41,12 +36,17 @@ class DanboorParser():
                     "height": item.get("image_height"),
                     "file_ext": item.get("file_ext"),
                     "md5": item.get("md5") or ImageTools.Url.get_md5(item.get("file_url")),
-                    "urls": {"file": item.get("file_url"), "source": item.get("source")},
+                    "urls": [item.get("file_url"), item.get("source")],
                     "rating": item.get("rating"),
-                    "tag": item.get("tag_string").split(" "),
-                    "json": item
+                    "tags": item.get("tag_string").split(" ")
                 })
         return res
+
+    def _count_posts_from_date(self, tag, date, delta_days, sleep = 0):
+        tag_date = f"date:{date.strftime('%Y-%m-%d')}..{(date + datetime.timedelta(days=delta_days)).strftime('%Y-%m-%d')}"
+        res = self.client.count_posts(tags=tag + " " + tag_date)["counts"]["posts"]
+        time.sleep(sleep)
+        return res, tag_date
 
     def queue_page_generator(self, tag, start_time=datetime.datetime(2005, 5, 23, hour=23, minute=35, second=30)):
         counts = self.client.count_posts(tags=tag)["counts"]["posts"]
@@ -56,51 +56,16 @@ class DanboorParser():
             list_dates = []
             while start_time < datetime.datetime.now():
                 timedelta_days = 365
-                tag_date = "date:{}..{}".format(start_time.strftime('%Y-%m-%d'),
-                                                (start_time + datetime.timedelta(days=timedelta_days))
-                                                .strftime('%Y-%m-%d'))
-                time.sleep(1)
-                counts = self.client.count_posts(tags=tag + " " + tag_date)["counts"]["posts"]
+                counts, tag_date = self._count_posts_from_date(tag=tag, date=start_time, delta_days=timedelta_days, sleep=1)
+
                 while 200000 < counts:
                     timedelta_days -= 100
-                    tag_date = "date:{}..{}".format(start_time.strftime('%Y-%m-%d'),
-                                                    (start_time + datetime.timedelta(days=timedelta_days))
-                                                    .strftime('%Y-%m-%d'))
-                    time.sleep(1)
-                    counts = self.client.count_posts(tags=tag + " " + tag_date)["counts"]["posts"]
-                    while not counts:
-                        time.sleep(20)
-                        counts = self.client.count_posts(tags=tag + " " + tag_date)["counts"]["posts"]
+                    counts, tag_date = self._count_posts_from_date(tag=tag, date=start_time, delta_days=timedelta_days, sleep=1)
+
+                    while counts is not None:
+                        counts, tag_date = self._count_posts_from_date(tag=tag, date=start_time, delta_days=timedelta_days, sleep=20)
+
                 start_time = start_time + datetime.timedelta(days=timedelta_days)
-                list_dates.append({"date_tag": tag_date,
-                                        "pages": math.ceil(counts/200)})
+                list_dates.append({"date_tag": tag_date, "pages": math.ceil(counts/200)})
+
             return False, list_dates
-
-
-
-
-
-
-            #
-            #
-            # while int(counts // 200) > 1000:
-            #     tag_date = "date:{}..{}".format(datetime.datetime.now().strftime('%Y-%m-%d'),(datetime.datetime.now() + datetime.timedelta(days=timedelta_days)).strftime('%Y-%m-%d'))
-            #     counts = self.client.count_posts(tags=tag + " " + tag_date)
-            #     counts = counts["counts"]["posts"]
-            #     timedelta_days = timedelta_days // 1.5
-            # last_time = datetime.datetime(2005, 5, 23, hour=23, minute=35, second=30)
-            # while last_time < datetime.datetime.now():
-            #     tag_date = "date:{}..{}".format(last_time.strftime('%Y-%m-%d'),
-            #                                     (last_time + datetime.timedelta(days=timedelta_days))
-            #                                     .strftime('%Y-%m-%d'))
-            #     pages = self.client.count_posts(tags=tag + " " + tag_date)["counts"]["posts"]//200
-            #     list_dates.append({"date_tag": tag_date,
-            #                        "pages": pages})
-            #     last_time = last_time + datetime.timedelta(days=timedelta_days)
-            #     print(tag_date)
-
-
-# print(DanboorParser.get_posts(tag = "fox_ears", page = 1, date_year = 2012, date_days_period = 356))
-
-dp = DanboorParser()
-print(json.dumps(dp.queue_page_generator("1girl")))
