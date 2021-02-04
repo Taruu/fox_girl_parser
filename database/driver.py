@@ -18,7 +18,7 @@ class ImageDatabase:
         with open("сonfig_files/db.txt") as db_file:
             session_factory = sessionmaker(
                 bind=create_engine(db_file.read(),
-                pool_recycle=3600,
+                pool_recycle=1024,
                 echo=False))
         self.executor = scoped_session(session_factory)
 
