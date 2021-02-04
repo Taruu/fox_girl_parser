@@ -2,7 +2,10 @@
 CREATE TABLE `object` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `rating` tinytext NOT NULL,
-  `md5_hash` char(32) NOT NULL
+  `md5_hash` char(32) NOT NULL,
+  `file_width` int NOT NULL,
+  `file_height` int NOT NULL,
+  `file_size` int NOT NULL
 );
 
 
@@ -27,11 +30,8 @@ CREATE TABLE `time_file` (
 CREATE TABLE `file_url` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `id_object` int NOT NULL,
-  `file_width` int NOT NULL,
-  `file_height` int NOT NULL,
   `url` longTEXT NOT NULL,
   `hash_url` varchar(255) UNIQUE NOT NULL,
-  `file_ext` char(8) NOT NULL,
   `id_check_at` int,
   `id_create_at` int
 );

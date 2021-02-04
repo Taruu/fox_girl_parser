@@ -39,8 +39,13 @@ class DatabaseWorker(ImageDatabase):
             self.database_to_add.append(time_obj)
         return time_obj
 
-    def update_object(self, object_to_edit_or_md5_hash, rating: str, time_created: int, new_tags: list,
-                      urls_image: list):
+    def update_object(self,
+                      object_to_edit_or_md5_hash,
+                      rating: str,
+                      time_created: int,
+                      new_tags: list,
+                      urls_image: list
+                      ):
         if object_to_edit_or_md5_hash is ImageDatabase.Object:
             object_to_edit = object_to_edit_or_md5_hash
         else:
@@ -69,9 +74,6 @@ class DatabaseWorker(ImageDatabase):
 
         for url in url_to_object:
             file_url = self.FileUrl(
-                file_width=url["width"],
-                file_height=url["height"],
-                file_ext=url["file_ext"],
                 url=url["url"],
                 hash_url=self.HashUtils.str_to_md5(url["url"]),
                 id_check_at=time_update_obj.id,
@@ -91,12 +93,21 @@ class DatabaseWorker(ImageDatabase):
         self.executor.commit()
         self.database_to_add.clear()
 
-    def add_object(self, md5_hash: str, rating: str, time_created: int, tags: list, urls_image: list):
+    def add_object(self,
+                   md5: str,
+                   rating: str,
+                   time_created: int,
+                   file_size:int,
+                   width:int,
+                   height:int,
+                   tags: list,
+                   urls: list
+                   ):
         """
-        md5_hash - The LARGEST image hash available
+        md5 - The LARGEST image hash available
         rating - image rating s,q и еще че то
         new_tags - Tags pictures
-        urls_image -Image storage links
+        urls -Image storage links
         How insert urls?
         Example:
         [{"size": 1,"width":22,"height":33,"file_ext":"jpg","url":"https://pbs.twimg.com/media/EGbhF6TVAAEEHdy.jpg"},
@@ -108,10 +119,14 @@ class DatabaseWorker(ImageDatabase):
 
         # We are looking for an object so as not to make extra tambourines
 
-        object_image = self.get_object_by_md5_hash(md5_hash)
+        object_image = self.get_object_by_md5_hash(md5)
 
         if not object_image:
-            object_image = self.Object(md5_hash=md5_hash, rating=rating)
+            object_image = self.Object(md5_hash=md5,
+                                       rating=rating,
+                                       file_size=file_size,
+                                       file_width=width,
+                                       file_height=height)
             self.database_to_add.append(object_image)  # add to add bac
         else:
             return "Object exists", object_image
@@ -125,18 +140,16 @@ class DatabaseWorker(ImageDatabase):
             tag_object = self.get_tag_or_create(tag)
             object_image.tags.append(tag_object)
 
-        for url in urls_image:
-            file_url = self.FileUrl(
-                file_width=url["width"],
-                file_height=url["height"],
-                file_ext=url["file_ext"],
-                url=url["url"],
-                hash_url=self.HashUtils.str_to_md5(url["url"]),
-                id_check_at=time_update_obj.id,
-                id_create_at=time_created_obj.id
-            )
-            object_image.links.append(file_url)
-            self.database_to_add.append(file_url)
+        for url in urls:
+            if url:
+                file_url = self.FileUrl(
+                    url=url,
+                    hash_url=self.HashUtils.str_to_md5(url),
+                    id_check_at=time_update_obj.id,
+                    id_create_at=time_created_obj.id
+                )
+                object_image.links.append(file_url)
+                self.database_to_add.append(file_url)
 
         self.executor.add_all(self.database_to_add)
         try:
@@ -151,8 +164,8 @@ class DatabaseWorker(ImageDatabase):
 
 if __name__ == "__main__":
     database = DatabaseWorker()
-    print(database.update_object("test", "s", 1264964759, ["test3", "test2"],
-                                 [{"size": 1, "width": 11, "height": 22, "file_ext": "jpg",
+    print(database.add_object("test", "s", 1264964759, 1, 11, 22, ["test3", "test2"],
+                                 [{"file_ext": "jpg",
                                    "url": "https://pbs.twimg.com/media/EGbhF6TVAAEEsdfsdfHdy.jpg"},
                                   {"size": 1, "width": 33, "height": 44, "file_ext": "jpg",
                                    "url": "https://pbs.twimg.com/media/EGbhF6TfVAAEEHdy.jpg"}]))
