@@ -48,7 +48,6 @@ class DanboorParser():
                     "created_at" : datetime.datetime.fromisoformat(item.get("created_at")),
                     "json": item
                 })
-        print(item)
         return res
 
     def queue_page_generator(self, tag, start_time=datetime.datetime(2005, 5, 23, hour=23, minute=35, second=30)):
