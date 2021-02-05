@@ -19,7 +19,7 @@ class DatabaseWorker(ImageDatabase):
         return item_obj
 
     def get_file_url_by_url(self, url):
-        file_url = self.executor.query(self.FileUrl).filter_by(hash_url=self.HashUtils.str_to_md5(url))
+        file_url = self.executor.query(self.FileUrl).filter_by(hash_url=self.HashUtils.str_to_md5(url)).first()
         return file_url
 
     def get_tag_or_create(self, name):
@@ -46,7 +46,7 @@ class DatabaseWorker(ImageDatabase):
                       new_tags: list,
                       urls_image: list
                       ):
-        if object_to_edit_or_md5_hash is ImageDatabase.Object:
+        if isinstance(object_to_edit_or_md5_hash, ImageDatabase.Object):
             object_to_edit = object_to_edit_or_md5_hash
         else:
             object_to_edit = self.get_object_by_md5_hash(object_to_edit_or_md5_hash)
@@ -57,15 +57,10 @@ class DatabaseWorker(ImageDatabase):
         time_created_obj = self.get_time_file_or_create(int(time_created))
         tags_in_object = list(map(lambda obj: obj.name, object_to_edit.tags))
         url_md5_in_object = list(map(lambda link: link.hash_url, object_to_edit.links))
-
+        self.database_to_add.append(time_update_obj)
         # cringe functions :/
-        url_to_object = [{"size": url["size"],
-                          "width": url["width"],
-                          "height": url["height"],
-                          "file_ext": url["file_ext"],
-                          "url": url["url"]}
-                         for url in urls_image if not(self.HashUtils.str_to_md5(url["url"]) in url_md5_in_object)]
-
+        url_to_object = [url for url in urls_image
+                         if not(self.HashUtils.str_to_md5(url) in url_md5_in_object)]
         tags_to_object = [tag for tag in new_tags if not (tag in tags_in_object)]
 
         for tag in tags_to_object:  # not has crossing!
@@ -73,25 +68,30 @@ class DatabaseWorker(ImageDatabase):
             object_to_edit.tags.append(tag_object)
 
         for url in url_to_object:
-            file_url = self.FileUrl(
-                url=url["url"],
-                hash_url=self.HashUtils.str_to_md5(url["url"]),
-                id_check_at=time_update_obj.id,
-                id_create_at=time_created_obj.id
-            )
-            object_to_edit.links.append(file_url)
-            self.database_to_add.append(file_url)
+            file_url = self.get_file_url_by_url(url)
+            if not file_url:
+                file_url = self.FileUrl(
+                    url=url,
+                    hash_url=self.HashUtils.str_to_md5(url),
+                    id_check_at=time_update_obj.id,
+                )
+                object_to_edit.links.append(file_url)
+                self.database_to_add.append(file_url)
 
         self.executor.add_all(self.database_to_add)
         try:
             self.executor.flush()
-        except sqlalchemy.exc.IntegrityError as e:
-            print(str(e).split(" "))
-            if "(1062," in str(e).split(" "):
-                return "There are intersections!"
+            self.database_to_add.clear()
+        except (IOError, Exception) as e:
+            print(e)
             self.executor.rollback()
-        self.executor.commit()
-        self.database_to_add.clear()
+
+            exit(1)
+        # except sqlalchemy.exc.IntegrityError as e:
+        #     print(str(e).split(" "))
+        #     if "(1062," in str(e).split(" "):
+        #         return "There are intersections!"
+        #     self.executor.rollback()
 
     def add_object(self,
                    md5: str,
@@ -120,28 +120,30 @@ class DatabaseWorker(ImageDatabase):
         # We are looking for an object so as not to make extra tambourines
 
         object_image = self.get_object_by_md5_hash(md5)
+        if object_image != None:
+            return "Obj_exists", object_image
 
-        if not object_image:
-            object_image = self.Object(md5_hash=md5,
-                                       rating=rating,
-                                       file_size=file_size,
-                                       file_width=width,
-                                       file_height=height)
-            self.database_to_add.append(object_image)  # add to add bac
-        else:
-            return "Object exists", object_image
+        object_image = self.Object(md5_hash=md5,
+                                   rating=rating,
+                                   file_size=file_size,
+                                   file_width=width,
+                                   file_height=height)
+        self.database_to_add.append(object_image)  # add to add bac
 
         # object_not exists! Good mate!
 
         time_update_obj = self.get_time_file_or_create(int(time.time()))
         time_created_obj = self.get_time_file_or_create(int(time_created))
+        self.database_to_add.append(time_update_obj)
+        self.database_to_add.append(time_created_obj)
 
         for tag in tags:  # not has crossing!
             tag_object = self.get_tag_or_create(tag)
             object_image.tags.append(tag_object)
 
         for url in urls:
-            if url:
+            file_url = self.get_file_url_by_url(url)
+            if not file_url:
                 file_url = self.FileUrl(
                     url=url,
                     hash_url=self.HashUtils.str_to_md5(url),
@@ -154,13 +156,21 @@ class DatabaseWorker(ImageDatabase):
         self.executor.add_all(self.database_to_add)
         try:
             self.executor.flush()
-        except sqlalchemy.exc.IntegrityError as e:
-            if "(1062" in str(e).split(" "):
-                return "There are intersections!"
+            self.database_to_add.clear()
+        except (IOError, Exception) as e:
+            print(e)
             self.executor.rollback()
-        self.executor.commit()
-        self.database_to_add.clear()
+            exit(1)
+        # except sqlalchemy.exc.IntegrityError as e:
+        #     if "(1062" in str(e).split(" "):
+        #         return "There are intersections!"
+        #     self.executor.rollback()
+        return True, object_image
 
+
+
+    def commit(self):
+        self.executor.commit()
 
 if __name__ == "__main__":
     database = DatabaseWorker()

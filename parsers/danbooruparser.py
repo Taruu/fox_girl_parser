@@ -77,7 +77,7 @@ class DanbooruParser():
     def queue_page_generator(self, tag, start_time=datetime.datetime(2005, 5, 23, hour=23, minute=35, second=30)):
         counts = self.client.count_posts(tags=tag)["counts"]["posts"]
         if counts // 200 <= 1000:
-            return True, None
+            return True, {"pages": math.ceil(counts/200)}
         else:
             list_dates = []
             while start_time < datetime.datetime.now():
@@ -87,7 +87,6 @@ class DanbooruParser():
                 while 200000 < counts:
                     timedelta_days -= 100
                     counts, tag_date = self._count_posts_from_date(tag=tag, date=start_time, delta_days=timedelta_days, sleep=1)
-
                     while counts is not None:
                         counts, tag_date = self._count_posts_from_date(tag=tag, date=start_time, delta_days=timedelta_days, sleep=20)
 
@@ -98,3 +97,4 @@ class DanbooruParser():
 
 # dp = DanbooruParser()
 # with open("danbooru", "wt") as f: f.write(json.dumps(dp.get_posts(filter_bad_posts=True), indent = 4))
+
