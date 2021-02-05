@@ -39,10 +39,7 @@ class DatabaseWorker(ImageDatabase):
             self.database_to_add.append(time_obj)
         return time_obj
 
-    def update_object(self,
-                      object_to_edit_or_md5_hash,
-                      rating: str,
-                      time_created: int,
+    def update_object(self,object_to_edit_or_md5_hash,rating: str,time_created: int,
                       new_tags: list,
                       urls_image: list
                       ):
