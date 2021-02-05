@@ -85,13 +85,13 @@ class DatabaseWorker(ImageDatabase):
         except (IOError, Exception) as e:
             print(e)
             self.executor.rollback()
+
             exit(1)
         # except sqlalchemy.exc.IntegrityError as e:
         #     print(str(e).split(" "))
         #     if "(1062," in str(e).split(" "):
         #         return "There are intersections!"
         #     self.executor.rollback()
-
 
     def add_object(self,
                    md5: str,
@@ -129,7 +129,6 @@ class DatabaseWorker(ImageDatabase):
                                    file_width=width,
                                    file_height=height)
         self.database_to_add.append(object_image)  # add to add bac
-
 
         # object_not exists! Good mate!
 

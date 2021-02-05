@@ -1,7 +1,7 @@
-from parsers.danbooruparser import DanboorParser
+from parsers.danbooruparser import DanbooruParser
 from database.db_functions import DatabaseWorker
 import os, json, time
-dp = DanboorParser()
+dp = DanbooruParser()
 datebase = DatabaseWorker()
 
 tag = "fox_girl"

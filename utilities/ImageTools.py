@@ -64,28 +64,24 @@ class ImageTools():
 
     class File():
         @staticmethod
-        def get_size_and_format(filename):
+        def get_size_and_format(file):
             try:
-                with open(filename, "rb") as image_file:
-                    image_parser = ImageFile.Parser()
-                    image_parser.feed(image_file.read())
-                    img = image_parser.close()
-                    return {"size": os.path.getsize(filename), "width": img.size[0], "height": img.size[1], "format": img.format}
+                size = len(file)
+                image_parser = ImageFile.Parser()
+                image_parser.feed(file)
+                img = image_parser.close()
+                return {"size": size, "width": img.size[0], "height": img.size[1], "format": img.format.lower()}
             except FileNotFoundError as err:
                 raise NoImageFile(err)
             except OSError as err:
                 raise OSError(err)
 
         @staticmethod
-        def get_md5(filename):
+        def get_md5(file):
             try:
-                with open(filename, "rb") as image_file:
-                    img = image_file.read()
-                    return {"hash": hashlib.md5(img).hexdigest()}
-            except FileNotFoundError as err:
-                raise NoImageFile(err)
-            except OSError as err:
-                raise OSError(err)
+                return {"hash": hashlib.md5(file).hexdigest()}
+            except Exception as err:
+                raise Exception(err)
 
 
 
