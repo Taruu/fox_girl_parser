@@ -18,7 +18,7 @@ from PIL import ImageFile
 class PixivTools():
     @staticmethod
     def download_image_by_url(url):
-        if not url.startswith("https://i.pximg.net/img-"):
+        if not item.get("source").startswith("https://i.pximg.net/img-") and item.get("source").endswith(".png") or item.get("source").endswith(".jpg"):
             raise NotAnImage("Url isn't provides to image")
 
         headers = {
