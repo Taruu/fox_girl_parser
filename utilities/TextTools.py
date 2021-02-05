@@ -13,4 +13,3 @@ class UrlStr():
             raise ValueError("String to check must be \"str\" type")
 
         return (url.startswith("https://") or url.startswith("http://"))
-

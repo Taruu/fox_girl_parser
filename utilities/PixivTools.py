@@ -11,8 +11,11 @@
 
 import random
 import requests
+from requests.exceptions import RequestException
 
-class Pixiv():
+from PIL import ImageFile
+
+class PixivTools():
     @staticmethod
     def download_image_by_url(url):
         if not url.startswith("https://i.pximg.net/img-"):
@@ -32,9 +35,9 @@ class Pixiv():
 
         try:
             requesting_file.raise_for_status()
-        except requests.exceptions.RequestException as err:
+        except RequestException as err:
             requesting_file.close()
-            raise Exception(err)
+            raise RequestException(err)
 
         if requesting_file.headers.get("Content-Type").startswith("image/"):
             img = requesting_file.content
@@ -42,6 +45,11 @@ class Pixiv():
             raise NotAnImage("Url isn't provides to image")
 
         requesting_file.close()
+
+        # image_parser = ImageFile.Parser()
+        # image_parser.feed(img)
+        # img = image_parser.close()
+
         return img
 
 class NotAnImage(Exception):
@@ -50,4 +58,4 @@ class NotAnImage(Exception):
 class NoImageFile(FileNotFoundError):
     pass
 
-# with open("img.png", "wb") as f: f.write(Pixiv.download_image_by_url("https://i.pximg.net/img-original/img/2020/09/10/00/55/25/84269705_p0.jpg"))
+# with open("img.png", "wb") as f: f.write(PixivTools.download_image_by_url("https://i.pximg.net/img-original/img/2020/09/10/00/55/25/84269705_p0.jpg"))

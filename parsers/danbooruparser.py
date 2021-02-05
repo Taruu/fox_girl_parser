@@ -5,13 +5,16 @@ import math
 
 from pybooru import Danbooru as booru
 
+from PIL import ImageFile
+
 from utilities.ImageTools import ImageTools
+from utilities.PixivTools import PixivTools
 
 class DanbooruParser():
     def __init__(self):
         self.client = booru('danbooru')
 
-    def get_posts(self, tags="", page=0, limit=200, date_start=None, date_end=None, date_year=None, date_days_period=356, date_one_year=True, filter_bad_images=True):
+    def get_posts(self, tags="", page=0, limit=200, date_start=None, date_end=None, date_year=None, date_days_period=356, date_one_year=True, filter_bad_posts=True, replace_info_from_pixiv_for_bad_posts=True):
 
         page = page if page < 1000 else 1000
         limit = limit if limit < 200 else 200
@@ -30,17 +33,39 @@ class DanbooruParser():
         res = []
         for item in posts:
             # If you dont understand wtf is this check then open "url_filter_explain.txt"
-            if (item.get("id") is not None or item.get("file_url") is not None) or not filter_bad_images:
+            print("id: " + str(item.get("id")) + " url: " + str(item.get("file_url") or item.get("source")))
+            if (item.get("id") is not None or item.get("file_url") is not None) or not filter_bad_posts:
                 res.append({
                     "width": item.get("image_width"),
                     "height": item.get("image_height"),
                     "file_ext": item.get("file_ext"),
+                    "file_size": item.get("file_size"),
                     "md5": item.get("md5") or ImageTools.Url.get_md5(item.get("file_url")),
                     "urls": [item.get("file_url"), item.get("source")],
                     "rating": item.get("rating"),
                     "tags": item.get("tag_string").split(" "),
                     "created_at": item.get("created_at")
                 })
+            elif item.get("source") is not None:
+                if item.get("source").startswith("https://i.pximg.net/img-"):
+                    try:
+                        img = PixivTools.download_image_by_url(item.get("source"))
+                    except Exception as e:
+                        raise Exception(e)
+
+                    size_and_format = ImageTools.File.get_size_and_format(img)
+                    res.append({
+                        "width": size_and_format.get("width"),
+                        "height": size_and_format.get("height"),
+                        "file_ext": size_and_format.get("format"),
+                        "file_size": size_and_format.get("size"),
+                        "md5": ImageTools.File.get_md5(img).get("hash"),
+                        "urls": [item.get("source")],
+                        "rating": item.get("rating"),
+                        "tags": item.get("tag_string").split(" "),
+                        "created_at": item.get("created_at")
+                    })
+
         return res
 
     def _count_posts_from_date(self, tag, date, delta_days, sleep = 0):
@@ -72,4 +97,4 @@ class DanbooruParser():
             return False, list_dates
 
 # dp = DanbooruParser()
-# with open("danbooru", "wt") as f: f.write(json.dumps(dp.get_posts(), indent = 4))
+# with open("danbooru", "wt") as f: f.write(json.dumps(dp.get_posts(filter_bad_posts=True), indent = 4))
