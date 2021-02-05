@@ -33,7 +33,7 @@ class DanbooruParser():
         res = []
         for item in posts:
             # If you dont understand wtf is this check then open "url_filter_explain.txt"
-            print("id: " + str(item.get("id")) + " url: " + str(item.get("file_url") or item.get("source")))
+            # print("id: " + str(item.get("id")) + " url: " + str(item.get("file_url") or item.get("source")))
             if (item.get("id") is not None or item.get("file_url") is not None) or not filter_bad_posts:
                 res.append({
                     "width": item.get("image_width"),
@@ -47,19 +47,20 @@ class DanbooruParser():
                     "created_at": item.get("created_at")
                 })
             elif item.get("source") is not None:
-                if item.get("source").startswith("https://i.pximg.net/img-"):
+                if item.get("source").startswith("https://i.pximg.net/img-") and item.get("source").endswith(".png") or item.get("source").endswith(".jpg"):
                     try:
                         img = PixivTools.download_image_by_url(item.get("source"))
+                        size_and_format = ImageTools.File.get_size_and_format(img)
+                        hash = ImageTools.File.get_md5(img).get("hash")
                     except Exception as e:
-                        raise Exception(e)
+                        continue
 
-                    size_and_format = ImageTools.File.get_size_and_format(img)
                     res.append({
                         "width": size_and_format.get("width"),
                         "height": size_and_format.get("height"),
                         "file_ext": size_and_format.get("format"),
                         "file_size": size_and_format.get("size"),
-                        "md5": ImageTools.File.get_md5(img).get("hash"),
+                        "md5": hash,
                         "urls": [item.get("source")],
                         "rating": item.get("rating"),
                         "tags": item.get("tag_string").split(" "),
@@ -97,4 +98,3 @@ class DanbooruParser():
 
 # dp = DanbooruParser()
 # with open("danbooru", "wt") as f: f.write(json.dumps(dp.get_posts(filter_bad_posts=True), indent = 4))
-
