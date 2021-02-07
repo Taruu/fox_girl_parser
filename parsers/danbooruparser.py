@@ -40,16 +40,20 @@ class DanbooruParser():
                     "height": item.get("image_height"),
                     "file_ext": item.get("file_ext"),
                     "file_size": item.get("file_size"),
-                    "md5": item.get("md5") or ImageTools.Url.get_md5(item.get("file_url")),
-                    "urls": [item.get("file_url"), item.get("source")],
+                    "md5": item.get("md5"),
+                    "urls": [
+                        item.get("file_url") if not(item.get("file_url").endswith(".zip")) else item.get("large_file_url") if item.get("has_large") else None,
+                        item.get("source"),
+                    ],
                     "rating": item.get("rating"),
                     "tags": item.get("tag_string").split(" "),
                     "created_at": item.get("created_at")
                 })
-            elif item.get("source") is not None:
-                if item.get("source").startswith("https://i.pximg.net/img-") and item.get("source").endswith(".png") or item.get("source").endswith(".jpg"):
+
+            elif (source := item.get("source")) is not None:
+                if source.startswith("https://i.pximg.net/img-") and item.get("source").endswith(".png") or item.get("source").endswith(".jpg"):
                     try:
-                        img = PixivTools.download_image_by_url(item.get("source"))
+                        img = PixivTools.download_image_by_url(source)
                         size_and_format = ImageTools.File.get_size_and_format(img)
                         hash = ImageTools.File.get_md5(img).get("hash")
                     except Exception as e:

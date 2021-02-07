@@ -12,4 +12,4 @@ class UrlStr():
         if not isinstance(string_to_check, str):
             raise ValueError("String to check must be \"str\" type")
 
-        return (url.startswith("https://") or url.startswith("http://"))
+        return (string_to_check.startswith("https://") or string_to_check.startswith("http://"))
