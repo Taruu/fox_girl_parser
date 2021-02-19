@@ -14,42 +14,74 @@ class DanbooruParser():
     def __init__(self):
         self.client = booru('danbooru')
 
-    def get_posts(self, tags="", page=0, limit=200, date_start=None, date_end=None, date_year=None, date_days_period=356, date_one_year=True, filter_bad_posts=True, replace_info_from_pixiv_for_bad_posts=True):
+    @staticmethod
+    def _tags_to_set(string_to_convert):
+        string_to_convert = set(string_to_convert.split(" "))
+        if len(list(string_to_convert)) == 0 and len(string_to_convert) == 1:
+            string_to_convert = None
+        return string_to_convert
+
+    def get_posts(
+            self,
+            tags="", tags_blacklist="", tags_filter_method="any", replace_date_tag_if_generating=True,
+            page=0, limit=200,
+            date_start=None, date_end=None, date_year=None, date_days_period=356, date_one_year=True,
+            filter_bad_posts=True, replace_info_from_pixiv_for_bad_posts=True
+        ):
+
+        tags_blacklist = self._tags_to_set(tags_blacklist)
 
         page = page if page < 1000 else 1000
         limit = limit if limit < 200 else 200
 
+        filter_word_startswith = lambda string_to_filter, filter_word, splitter=" ": splitter.join([x for x in string_to_filter.split(splitter) if not(x.startswith(filter_word))])
+
         if isinstance(date_start, datetime.datetime) and isinstance(date_end, datetime.datetime):
             if date_start < date_end:
+                tags = filter_word_startswith(tags, "date:") if replace_date_tag_if_generating else tags
                 tags += " date:" + date_start.strftime("%Y-%m-%d") + ".." + date_end.strftime("%Y-%m-%d")
             else:
                 raise ValueError("date_start must be earlier than date_end")
         elif isinstance(date_start, datetime.datetime) and bool(date_one_year):
+            tags = filter_word_startswith(tags, "date:") if replace_date_tag_if_generating else tags
             tags += " date:" + date_start.strftime("%Y-%m-%d") + ".." + (date_start + datetime.timedelta(days=365)).strftime("%Y-%m-%d")
         elif isinstance(date_year, int) and date_year > 1970 and date_year <= datetime.date.today().year and isinstance(date_days_period, int) and date_days_period > 0:
+            tags = filter_word_startswith(tags, "date:") if replace_date_tag_if_generating else tags
             tags += " date:" + datetime.datetime(date_year, 1, 1).strftime("%Y-%m-%d") + ".." + (datetime.datetime(date_year, 1, 1) + datetime.timedelta(days=date_days_period)).strftime("%Y-%m-%d")
 
         posts = self.client.post_list(tags=tags, page=page, limit=limit)
         res = []
         for item in posts:
+            # Filtering blacklisted tags
+            if tags_blacklist is not None:
+                post_tags = self._tags_to_set(item.get("tag_string"))
+                if (tags_filter_method == "any" and len(post_tags) != len(post_tags - tags_blacklist)) or \
+                    (tags_filter_method == "all" and tags_blacklist.issubset(post_tags)):
+                        continue
+
             # If you dont understand wtf is this check then open "url_filter_explain.txt"
-            # print("id: " + str(item.get("id")) + " url: " + str(item.get("file_url") or item.get("source")))
             if (item.get("id") is not None or item.get("file_url") is not None) or not filter_bad_posts:
                 res.append({
                     "width": item.get("image_width"),
                     "height": item.get("image_height"),
                     "file_ext": item.get("file_ext"),
                     "file_size": item.get("file_size"),
-                    "md5": item.get("md5") or ImageTools.Url.get_md5(item.get("file_url")),
-                    "urls": [item.get("file_url"), item.get("source")],
+                    "md5": item.get("md5"),
+                    "urls": [
+                        item.get("file_url"),
+                        item.get("large_file_url"),
+                        item.get("source"),
+                    ],
                     "rating": item.get("rating"),
                     "tags": item.get("tag_string").split(" "),
                     "created_at": item.get("created_at")
                 })
-            elif item.get("source") is not None:
-                if item.get("source").startswith("https://i.pximg.net/img-") and item.get("source").endswith(".png") or item.get("source").endswith(".jpg"):
+
+            elif (source := item.get("source")) is not None:
+                if source.startswith("https://i.pximg.net/img-") and \
+                    item.get("source").endswith(".png") or item.get("source").endswith(".jpg"):
                     try:
-                        img = PixivTools.download_image_by_url(item.get("source"))
+                        img = PixivTools.download_image_by_url(source)
                         size_and_format = ImageTools.File.get_size_and_format(img)
                         hash = ImageTools.File.get_md5(img).get("hash")
                     except Exception as e:
@@ -97,4 +129,4 @@ class DanbooruParser():
             return False, list_dates
 
 # dp = DanbooruParser()
-# with open("danbooru", "wt") as f: f.write(json.dumps(dp.get_posts(filter_bad_posts=True), indent = 4))
+# with open("danbooru", "wt") as f: f.write(json.dumps(dp.get_posts(tags="fox_ears", tags_blacklist="smile solo", tags_filter_method="all"), indent = 4))
