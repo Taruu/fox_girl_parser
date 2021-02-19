@@ -140,6 +140,7 @@ class DatabaseWorker(ImageDatabase):
 
         for url in urls:
             file_url = self.get_file_url_by_url(url)
+
             if not file_url:
                 file_url = self.FileUrl(
                     url=url,
@@ -149,6 +150,7 @@ class DatabaseWorker(ImageDatabase):
                 )
                 object_image.links.append(file_url)
                 self.database_to_add.append(file_url)
+
 
         self.executor.add_all(self.database_to_add)
         try:
